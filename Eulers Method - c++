@@ -1,0 +1,526 @@
+ # include <iostream.h>
+ # include   <stdlib.h>
+ # include   <string.h>
+ # include    <stdio.h>
+ # include    <conio.h>
+ # include     <math.h>
+
+ constint max_size=13;
+
+ int n=0;
+ int top=-1;
+
+ longdouble h=0;
+ longdouble x=0;
+ longdouble x0=0;
+ longdouble y0=0;
+
+ longdouble xn[max_size]={0};
+ longdouble yn[max_size]={0};
+
+ char Fx[100]={NULL};
+ char Stack[30][30]={NULL};
+ char Postfix_expression[30][30]={NULL};
+
+ /*************************************************************************//*************************************************************************///------------------------  Funcion Prototypes  -------------------------///*************************************************************************//*************************************************************************/void push(constchar *);
+ void convert_ie_to_pe(constchar *);
+
+ constchar* pop( );
+ constlongdouble evaluate_pe(constlongdouble,constlongdouble);
+
+ void show_screen( );
+ void clear_screen( );
+ void get_input( );
+ void apply_euler_method( );
+ void show_result( );
+
+ /*************************************************************************//*************************************************************************///------------------------------  main( )  ------------------------------///*************************************************************************//*************************************************************************/int main( )
+    {
+       clrscr( );
+       textmode(C4350);
+
+       show_screen( );
+       get_input( );
+       apply_euler_method( );
+       show_result( );
+
+       getch( );
+       return 0;
+     }
+
+ /*************************************************************************//*************************************************************************///------------------------  Funcion Definitions  ------------------------///*************************************************************************//*************************************************************************//*************************************************************************///--------------------------  show_screen( )  ---------------------------///*************************************************************************/void show_screen( )
+    {
+       cprintf("\n********************************************************************************");
+       cprintf("*******************************-                -*******************************");
+       cprintf("*------------------------------- ");
+
+       textbackground(1);
+       cprintf(" Euler Method ");
+       textbackground(8);
+
+       cprintf(" -------------------------------*");
+       cprintf("*-*****************************-                -*****************************-*");
+       cprintf("*-****************************************************************************-*");
+
+       for(int count=0;count<42;count++)
+      cprintf("*-*                                                                          *-*");
+
+       gotoxy(1,46);
+       cprintf("*-****************************************************************************-*");
+       cprintf("*------------------------------------------------------------------------------*");
+       cprintf("********************************************************************************");
+
+       gotoxy(1,2);
+    }
+
+ /*************************************************************************///-------------------------  clear_screen( )  ---------------------------///*************************************************************************/void clear_screen( )
+    {
+       for(int count=0;count<37;count++)
+      {
+         gotoxy(5,8+count);
+         cout<<"                                                                        ";
+      }
+
+       gotoxy(1,2);
+    }
+
+ /*************************************************************************///--------------------------  push(const char*)  ------------------------///*************************************************************************/void push(constchar* Operand)
+    {
+       if(top==(max_size-1))
+      {
+         cout<<"Error : Stack is full."<<endl;
+         cout<<"\n        Press any key to exit.";
+
+         getch( );
+         exit(0);
+      }
+
+       else
+      {
+         top++;
+         strcpy(Stack[top],Operand);
+      }
+    }
+
+ /*************************************************************************///------------------------------  pop( )  -------------------------------///*************************************************************************/constchar* pop( )
+    {
+       char Operand[40]={NULL};
+
+       if(top==-1)
+      {
+         cout<<"Error : Stack is empty."<<endl;
+         cout<<"\n        Press any key to exit.";
+
+         getch( );
+         exit(0);
+      }
+
+       else
+      {
+         strcpy(Operand,Stack[top]);
+         strset(Stack[top],NULL);
+         top--;
+      }
+
+       return Operand;
+    }
+
+ /*************************************************************************///--------------------  convert_ie_to_pe(const char*)  ------------------///*************************************************************************/void convert_ie_to_pe(constchar* Expression)
+    {
+       char Infix_expression[100]={NULL};
+       char Symbol_scanned[30]={NULL};
+
+       push("(");
+       strcpy(Infix_expression,Expression);
+       strcat(Infix_expression,"+0)");
+
+       int flag=0;
+       int count_1=0;
+       int count_2=0;
+       int equation_length=strlen(Infix_expression);
+
+       if(Infix_expression[0]=='(')
+      flag=1;
+
+       do
+      {
+         strset(Symbol_scanned,NULL);
+
+         if(flag==0)
+        {
+           int count_3=0;
+
+           do
+              {
+             Symbol_scanned[count_3]=Infix_expression[count_1];
+
+             count_1++;
+             count_3++;
+              }
+           while(count_1<=equation_length &&
+               Infix_expression[count_1]!='(' &&
+                  Infix_expression[count_1]!='+' &&
+                 Infix_expression[count_1]!='-' &&
+                    Infix_expression[count_1]!='*' &&
+                       Infix_expression[count_1]!='/' &&
+                      Infix_expression[count_1]!='^' &&
+                         Infix_expression[count_1]!=')');
+
+
+           flag=1;
+        }
+
+         elseif(flag==1)
+        {
+           Symbol_scanned[0]=Infix_expression[count_1];
+
+           count_1++;
+
+           if(Infix_expression[count_1]!='(' &&
+             Infix_expression[count_1]!='^' &&
+                Infix_expression[count_1]!='*' &&
+                   Infix_expression[count_1]!='/' &&
+                  Infix_expression[count_1]!='+' &&
+                     Infix_expression[count_1]!='-' &&
+                    Infix_expression[count_1]!=')')
+              flag=0;
+
+           if(Infix_expression[count_1-1]=='(' &&
+               (Infix_expression[count_1]=='-' ||
+                 Infix_expression[count_1]=='+'))
+              flag=0;
+        }
+
+         if(strcmp(Symbol_scanned,"(")==0)
+        push("(");
+
+         elseif(strcmp(Symbol_scanned,")")==0)
+        {
+           while(strcmp(Stack[top],"(")!=0)
+              {
+             strcpy(Postfix_expression[count_2],pop( ));
+
+             count_2++;
+              }
+
+           pop( );
+        }
+
+         elseif(strcmp(Symbol_scanned,"^")==0 ||
+               strcmp(Symbol_scanned,"+")==0 ||
+                 strcmp(Symbol_scanned,"-")==0 ||
+                       strcmp(Symbol_scanned,"*")==0 ||
+                         strcmp(Symbol_scanned,"/")==0)
+        {
+           if(strcmp(Symbol_scanned,"^")==0)
+              {  }
+
+           elseif(strcmp(Symbol_scanned,"*")==0 ||
+                          strcmp(Symbol_scanned,"/")==0)
+              {
+             while(strcmp(Stack[top],"^")==0 ||
+                     strcmp(Stack[top],"*")==0 ||
+                       strcmp(Stack[top],"/")==0)
+                {
+                   strcpy(Postfix_expression[count_2],pop( ));
+
+                   count_2++;
+                }
+              }
+
+           elseif(strcmp(Symbol_scanned,"+")==0 ||
+                    strcmp(Symbol_scanned,"-")==0)
+              {
+             while(strcmp(Stack[top],"(")!=0)
+                {
+                   strcpy(Postfix_expression[count_2],pop( ));
+
+                   count_2++;
+                }
+              }
+
+           push(Symbol_scanned);
+        }
+
+         else
+        {
+           strcat(Postfix_expression[count_2],Symbol_scanned);
+
+           count_2++;
+        }
+      }
+       while(strcmp(Stack[top],NULL)!=0);
+
+       strcat(Postfix_expression[count_2],"=");
+       count_2++;
+    }
+
+ /*************************************************************************///--------  evaluate_pe(const long double,const long double)  -----------///*************************************************************************/constlongdouble evaluate_pe(constlongdouble x,constlongdouble y)
+    {
+       longdouble function_value=0;
+
+       int count_1=-1;
+
+       char Symbol_scanned[30]={NULL};
+
+       do
+      {
+         count_1++;
+
+         strcpy(Symbol_scanned,Postfix_expression[count_1]);
+
+         if(strcmp(Symbol_scanned,"^")==0 ||
+              strcmp(Symbol_scanned,"*")==0 ||
+                strcmp(Symbol_scanned,"/")==0 ||
+                  strcmp(Symbol_scanned,"+")==0 ||
+                    strcmp(Symbol_scanned,"-")==0)
+
+        {
+           char Result[30]={NULL};
+           char Operand[2][30]={NULL};
+
+           strcpy(Operand[0],pop( ));
+           strcpy(Operand[1],pop( ));
+
+           longdouble operand[2]={0};
+           longdouble result=0;
+
+           char *endptr;
+
+           for(int count_2=0;count_2<2;count_2++)
+              {
+             int flag=0;
+
+             if(Operand[count_2][0]=='-')
+                {
+                   int length=strlen(Operand[count_2]);
+
+                   for(int count_3=0;count_3<(length-1);count_3++)
+                  Operand[count_2][count_3]=Operand[count_2][(count_3+1)];
+
+                   Operand[count_2][count_3]=NULL;
+
+                   flag=1;
+                }
+
+             if(strcmp(Operand[count_2],"x")==0)
+                operand[count_2]=x;
+
+             elseif(strcmp(Operand[count_2],"y")==0)
+                operand[count_2]=y;
+
+             elseif(strcmp(Operand[count_2],"e")==0)
+                operand[count_2]=2.718282;
+
+             elseif(strcmp(Operand[count_2],"sinx")==0)
+                operand[count_2]=sinl(x);
+
+             elseif(strcmp(Operand[count_2],"cosx")==0)
+                operand[count_2]=cosl(x);
+
+             elseif(strcmp(Operand[count_2],"tanx")==0)
+                operand[count_2]=tanl(x);
+
+             elseif(strcmp(Operand[count_2],"lnx")==0)
+                operand[count_2]=logl(x);
+
+             elseif(strcmp(Operand[count_2],"logx")==0)
+                operand[count_2]=log10l(x);
+
+             elseif(strcmp(Operand[count_2],"siny")==0)
+                operand[count_2]=sinl(y);
+
+             elseif(strcmp(Operand[count_2],"cosy")==0)
+                operand[count_2]=cosl(y);
+
+             elseif(strcmp(Operand[count_2],"tany")==0)
+                operand[count_2]=tanl(y);
+
+             elseif(strcmp(Operand[count_2],"lny")==0)
+                operand[count_2]=logl(y);
+
+             elseif(strcmp(Operand[count_2],"logy")==0)
+                operand[count_2]=log10l(y);
+
+             else
+                operand[count_2]=strtod(Operand[count_2],&endptr);
+
+             if(flag)
+                operand[count_2]*=-1;
+              }
+
+           switch(Symbol_scanned[0])
+              {
+             case'^' : result=powl(operand[1],operand[0]);
+                    break;
+
+             case'*' : result=operand[1]*operand[0];
+                    break;
+
+             case'/' : result=operand[1]/operand[0];
+                    break;
+
+             case'+' : result=operand[1]+operand[0];
+                    break;
+
+             case'-' : result=operand[1]-operand[0];
+                    break;
+              }
+
+           gcvt(result,25,Result);
+
+           push(Result);
+        }
+
+         elseif(strcmp(Symbol_scanned,"=")!=0)
+        push(Symbol_scanned);
+      }
+       while(strcmp(Symbol_scanned,"=")!=0);
+
+       char Function_value[30]={NULL};
+       char *endptr;
+
+       strcpy(Function_value,pop( ));
+       function_value=strtod(Function_value,&endptr);
+
+       return function_value;
+    }
+
+ /*************************************************************************///-----------------------------  get_input( )  --------------------------///*************************************************************************/void get_input( )
+    {
+       gotoxy(6,10);
+       cout<<"Input :";
+
+       gotoxy(6,11);
+       cout<<"ÍÍÍÍÍÍÍ";
+
+       gotoxy(6,37);
+       cout<<"Note : Write the function with proper Braces ( ) e.g; 2x+3 as (2*x)+3";
+
+       gotoxy(6,40);
+       cout<<"Available Operators  :  ^ (raised to power) , * , / , + , -";
+
+       gotoxy(6,42);
+       cout<<"Available Operands   :  x , e , sinx , cosx , tanx , lnx , logx ,";
+
+       gotoxy(6,44);
+       cout<<"                        any number and all above functions with y.";
+
+       gotoxy(6,14);
+       cout<<"Enter the Function : f(x,y) = ";
+
+       cin>>Fx;
+
+       convert_ie_to_pe(Fx);
+
+       gotoxy(6,17);
+       cout<<"Enter the value of xn = ";
+
+       cin>>x;
+
+       gotoxy(6,19);
+       cout<<"Enter the value of x0 = ";
+
+       cin>>x0;
+
+       gotoxy(6,21);
+       cout<<"Enter the value of y0 = ";
+
+       cin>>y0;
+
+       gotoxy(6,23);
+       cout<<"Enter the value of h = ";
+
+       cin>>h;
+    }
+
+ /*************************************************************************///------------------------  apply_euler_method( )  ----------------------///*************************************************************************/void apply_euler_method( )
+    {
+       clear_screen( );
+
+       gotoxy(6,9);
+       cout<<"Solution :";
+
+       gotoxy(6,10);
+       cout<<"ÍÍÍÍÍÍÍÍÍÍ";
+
+       gotoxy(25,12);
+       cout<<"ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿";
+
+       gotoxy(25,13);
+       cout<<"³       x       ³      y        ³";
+
+       gotoxy(25,14);
+       cout<<"ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´";
+
+       gotoxy(25,15);
+       cout<<"³               ³               ³";
+
+       xn[0]=x0;
+       yn[0]=y0;
+
+       do
+      {
+         xn[(n+1)]=(xn[n]+h);
+         n++;
+      }
+       while(xn[n]<x);
+
+       for(int count_1=0;count_1<=n;count_1++)
+      {
+         gotoxy(25,(wherey( )+1));
+         cout<<"³               ³               ³";
+
+         gotoxy(25,(wherey( )+1));
+         cout<<"³               ³               ³";
+      }
+
+       gotoxy(25,(wherey( )+1));
+       cout<<"ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ";
+
+       gotoxy(25,16);
+
+       for(int count_2=0;count_2<=n;count_2++)
+      {
+         gotoxy(27,wherey( ));
+         cout<<xn[count_2];
+
+         gotoxy(43,wherey( ));
+         cout<<yn[count_2];
+
+         yn[(count_2+1)]=(yn[count_2]+(h*evaluate_pe(xn[count_2],yn[count_2])));
+
+         gotoxy(25,(wherey( )+2));
+      }
+
+       gotoxy(25,43);
+       cout<<"Press any key to continue...";
+
+       getch( );
+    }
+
+ /*************************************************************************///---------------------------  show_result( )  --------------------------///*************************************************************************/void show_result( )
+    {
+       clear_screen( );
+
+       gotoxy(6,9);
+       cout<<"Euler Method :";
+
+       gotoxy(6,10);
+       cout<<"ÍÍÍÍÍÍÍÍÍÍÍÍÍÍ";
+
+       gotoxy(10,12);
+       cout<<"y(n+1) = yn + [ h * f(xn,yn) ]   ,  for n=0,1,2,3,...";
+
+       gotoxy(6,17);
+       cout<<"Estimated Value :";
+
+       gotoxy(6,18);
+       cout<<"ÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ";
+
+       gotoxy(8,20);
+       cout<<"Estimated differential value = "<<yn[n];
+
+       gotoxy(1,2);
+    }
+  	

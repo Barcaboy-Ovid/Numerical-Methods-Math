@@ -1,0 +1,74 @@
+#include<stdio.h>
+#include "barrier.h"
+#include "forkjoin.h"
+#include "shared.h"int main()
+{
+ int n, i, pid, start, size, nproc, shmid1, shmid2, sh3, sh4, sh5, sh6, *y;
+ int *x, *X, *XY, *X2, *Y, year;
+        float a, b, data;
+
+        printf("Enter the duration in years :: ");
+        scanf("%d",&size);
+
+        printf("Enter the starting year :: ");
+        scanf("%d",&start);
+        n=start;
+
+        y=(int *)create_memory(size*2,&shmid1);
+        x=(int *)create_memory(size*2, &shmid2);
+        X=(int *)create_memory(size*2,&sh6);                         
+        XY=(int *)create_memory(2,&sh3);
+        X2=(int *)create_memory(2, &sh4);
+        Y=(int *)create_memory(2,&sh5);
+
+        *Y=*XY=*X2=0;
+        for(i=0;i<size;i++)
+        {
+                x[i]=start;
+                printf("Enter the data for year %d :: ",x[i]);
+                scanf("%d",&y[i]);
+                start++;
+        }
+
+
+        n=(int)(x[size-1]-x[0])/2;
+        n=x[n];
+
+        for(i=0;i<size;i++)
+                X[i]=x[i]-n;
+
+
+        printf("Enter the total number of processes :: ");
+        scanf("%d",&nproc);                                  
+
+        pid=create_process(&nproc);
+
+        for(i=pid;i<size;i+=nproc)
+        {
+                *XY += X[i]*y[i];
+                *X2 += (X[i])*(X[i]);
+                *Y += y[i];
+        }
+
+        join_process(&nproc,&pid);
+
+        a=(float)*XY/(*X2);
+        b=(float)*Y/size;
+
+        printf("The equation is y = %.2fx + %.2f",a,b);
+        printf("\nEnter the year for which u want the data :: ");
+        scanf("%d",&year);
+
+        data=a*(year-n) + b;
+        printf("\nFor year %d, the data value is %0.2f",year,data);
+
+        cleanup_memory(&shmid1);             
+        cleanup_memory(&shmid2);
+        cleanup_memory(&sh3);
+        cleanup_memory(&sh4);
+        cleanup_memory(&sh5);
+        cleanup_memory(&sh6);
+        printf("\n");
+
+        return 0;
+}                             
